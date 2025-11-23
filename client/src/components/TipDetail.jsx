@@ -1,6 +1,48 @@
 import React, { useEffect, useState } from 'react';
 import { getTipDetail, saveTip } from './api';
-import { Alert, Box, Button, Card, CardContent, CircularProgress, Divider, List, ListItem, ListItemText, Stack, Typography } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  Divider,
+  List,
+  ListItem,
+  ListItemText,
+  Stack,
+  Typography,
+  Container,
+  Chip,
+  Paper,
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
+import BookmarkAddIcon from '@mui/icons-material/BookmarkAdd';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+
+const DetailCard = styled(Card)(({ theme }) => ({
+  background: 'linear-gradient(135deg, #FFFFFF 0%, #F9F6F3 100%)',
+  padding: theme.spacing(2),
+}));
+
+const StepItem = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(2),
+  borderRadius: theme.spacing(2),
+  backgroundColor: theme.palette.secondary.light,
+  border: `2px solid ${theme.palette.secondary.main}`,
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    backgroundColor: theme.palette.secondary.main,
+    transform: 'translateX(8px)',
+  },
+}));
+
+const PageContainer = styled(Box)(({ theme }) => ({
+  minHeight: '100vh',
+  background: `linear-gradient(180deg, ${theme.palette.background.default} 0%, ${theme.palette.secondary.light} 100%)`,
+  padding: theme.spacing(4, 0),
+}));
 
 export default function TipDetail({ userId, age, gender, goal, tipTitle, onSaved }) {
   const [detail, setDetail] = useState(null);
@@ -34,7 +76,7 @@ export default function TipDetail({ userId, age, gender, goal, tipTitle, onSaved
         userId,
         tip: {
           title: tipTitle,
-          icon_keyword: (detail.icon_keyword || 'wellness'),
+          icon_keyword: detail.icon_keyword || 'wellness',
           explanation_long: detail.explanation_long,
           steps: detail.steps,
         },
@@ -50,36 +92,85 @@ export default function TipDetail({ userId, age, gender, goal, tipTitle, onSaved
   if (!tipTitle) return null;
 
   return (
-    <Card variant="outlined">
-      <CardContent>
-        <Stack spacing={2}>
-          <Typography variant="h6" sx={{ m: 0 }}>{tipTitle}</Typography>
-          {loading ? <Box><CircularProgress size={20} /></Box> : null}
-          {error ? <Alert severity="error">{error}</Alert> : null}
-          {detail ? (
-            <>
-              <Typography whiteSpace="pre-wrap" lineHeight={1.6}>
-                {detail.explanation_long}
-              </Typography>
-              <Divider />
-              <List>
-                {(detail.steps || []).map((s, i) => (
-                  <ListItem key={i} disablePadding>
-                    <ListItemText primary={`${i + 1}. ${s}`} />
-                  </ListItem>
-                ))}
-              </List>
-              <Box>
-                <Button onClick={handleSave} disabled={saving || !userId} color="primary" sx={{ minWidth: 120, height: 36 }}>
-                  {saving ? 'Saving…' : 'Save Tip'}
-                </Button>
-              </Box>
-            </>
-          ) : null}
+    <PageContainer>
+      <Container maxWidth="md">
+        <Stack spacing={4}>
+          <Box textAlign="center">
+            <Chip
+              label="Wellness Tip"
+              color="primary"
+              sx={{ mb: 2 }}
+            />
+            <Typography variant="h3" color="primary" gutterBottom fontWeight={600}>
+              {tipTitle}
+            </Typography>
+          </Box>
+
+          {loading && (
+            <Box display="flex" justifyContent="center" py={4}>
+              <CircularProgress size={48} />
+            </Box>
+          )}
+
+          {error && <Alert severity="error">{error}</Alert>}
+
+          {detail && (
+            <DetailCard elevation={0}>
+              <CardContent>
+                <Stack spacing={4}>
+                  <Box>
+                    <Typography variant="h5" gutterBottom fontWeight={600} color="text.primary">
+                      Overview
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary" lineHeight={1.8}>
+                      {detail.explanation_long}
+                    </Typography>
+                  </Box>
+
+                  <Divider />
+
+                  <Box>
+                    <Typography variant="h5" gutterBottom fontWeight={600} color="text.primary">
+                      Action Steps
+                    </Typography>
+                    <List sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {(detail.steps || []).map((s, i) => (
+                        <StepItem key={i} elevation={0}>
+                          <ListItem disableGutters>
+                            <CheckCircleOutlineIcon
+                              sx={{ mr: 2, color: 'primary.main' }}
+                            />
+                            <ListItemText
+                              primary={s}
+                              primaryTypographyProps={{
+                                variant: 'body1',
+                                fontWeight: 500,
+                              }}
+                            />
+                          </ListItem>
+                        </StepItem>
+                      ))}
+                    </List>
+                  </Box>
+
+                  <Box display="flex" justifyContent="center" pt={2}>
+                    <Button
+                      variant="contained"
+                      size="large"
+                      onClick={handleSave}
+                      disabled={!userId || saving}
+                      startIcon={<BookmarkAddIcon />}
+                      sx={{ px: 4, py: 1.5 }}
+                    >
+                      {saving ? 'Saving...' : 'Save to My Tips'}
+                    </Button>
+                  </Box>
+                </Stack>
+              </CardContent>
+            </DetailCard>
+          )}
         </Stack>
-      </CardContent>
-    </Card>
+      </Container>
+    </PageContainer>
   );
 }
-
-
